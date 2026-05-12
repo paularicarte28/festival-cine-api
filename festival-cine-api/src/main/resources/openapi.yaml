@@ -1,0 +1,982 @@
+openapi: 3.0.3
+
+info:
+  title: Festival de Cine API
+  description: API REST para la gestión de un festival de cine. Permite administrar directores, películas, ediciones, salas y proyecciones.
+  version: 1.0.0
+  contact:
+    name: Festival de Cine API
+    email: admin@festivaldecine.com
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Servidor de desarrollo local
+
+tags:
+  - name: Directores
+    description: Operaciones sobre directores de cine
+  - name: Películas
+    description: Operaciones sobre películas
+  - name: Ediciones
+    description: Operaciones sobre ediciones del festival
+  - name: Salas
+    description: Operaciones sobre salas de proyección
+  - name: Proyecciones
+    description: Operaciones sobre proyecciones
+
+# ─────────────────────────────────────────────
+#  PATHS
+# ─────────────────────────────────────────────
+paths:
+
+  # ══════════════════════════════════════════
+  #  DIRECTORES
+  # ══════════════════════════════════════════
+  /directores:
+    get:
+      tags: [Directores]
+      summary: Listar directores
+      description: Devuelve la lista de directores con filtros opcionales.
+      operationId: getDirectores
+      parameters:
+        - name: nacionalidad
+          in: query
+          description: Filtra por nacionalidad
+          required: false
+          schema:
+            type: string
+            example: Española
+        - name: premioHonorifico
+          in: query
+          description: Filtra por si tiene premio honorífico
+          required: false
+          schema:
+            type: boolean
+            example: true
+        - name: nombre
+          in: query
+          description: Filtra por nombre (búsqueda parcial)
+          required: false
+          schema:
+            type: string
+            example: Pedro
+      responses:
+        '200':
+          description: Lista de directores obtenida correctamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DirectorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags: [Directores]
+      summary: Crear director
+      description: Crea un nuevo director.
+      operationId: createDirector
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DirectorRequest'
+      responses:
+        '201':
+          description: Director creado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirectorResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /directores/{id}:
+    get:
+      tags: [Directores]
+      summary: Obtener director por ID
+      operationId: getDirectorById
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Director encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirectorResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags: [Directores]
+      summary: Actualizar director
+      operationId: updateDirector
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DirectorRequest'
+      responses:
+        '200':
+          description: Director actualizado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirectorResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags: [Directores]
+      summary: Eliminar director
+      operationId: deleteDirector
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204':
+          description: Director eliminado correctamente
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ══════════════════════════════════════════
+  #  PELÍCULAS
+  # ══════════════════════════════════════════
+  /peliculas:
+    get:
+      tags: [Películas]
+      summary: Listar películas
+      description: Devuelve la lista de películas con filtros opcionales.
+      operationId: getPeliculas
+      parameters:
+        - name: idioma
+          in: query
+          description: Filtra por idioma original
+          required: false
+          schema:
+            type: string
+            example: Español
+        - name: directorId
+          in: query
+          description: Filtra por ID de director
+          required: false
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: notaMediaMin
+          in: query
+          description: Filtra películas con nota media mayor o igual al valor indicado
+          required: false
+          schema:
+            type: number
+            format: float
+            minimum: 0.0
+            maximum: 10.0
+            example: 7.5
+      responses:
+        '200':
+          description: Lista de películas obtenida correctamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PeliculaResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags: [Películas]
+      summary: Crear película
+      operationId: createPelicula
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PeliculaRequest'
+      responses:
+        '201':
+          description: Película creada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeliculaResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /peliculas/{id}:
+    get:
+      tags: [Películas]
+      summary: Obtener película por ID
+      operationId: getPeliculaById
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Película encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeliculaResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags: [Películas]
+      summary: Actualizar película
+      operationId: updatePelicula
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PeliculaRequest'
+      responses:
+        '200':
+          description: Película actualizada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeliculaResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags: [Películas]
+      summary: Eliminar película
+      operationId: deletePelicula
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204':
+          description: Película eliminada correctamente
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ══════════════════════════════════════════
+  #  EDICIONES
+  # ══════════════════════════════════════════
+  /ediciones:
+    get:
+      tags: [Ediciones]
+      summary: Listar ediciones
+      description: Devuelve la lista de ediciones con filtros opcionales.
+      operationId: getEdiciones
+      parameters:
+        - name: ciudad
+          in: query
+          description: Filtra por ciudad
+          required: false
+          schema:
+            type: string
+            example: San Sebastián
+        - name: activa
+          in: query
+          description: Filtra por si la edición está activa
+          required: false
+          schema:
+            type: boolean
+            example: true
+        - name: anio
+          in: query
+          description: Filtra por año de la edición
+          required: false
+          schema:
+            type: integer
+            example: 2025
+      responses:
+        '200':
+          description: Lista de ediciones obtenida correctamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EdicionResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags: [Ediciones]
+      summary: Crear edición
+      operationId: createEdicion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EdicionRequest'
+      responses:
+        '201':
+          description: Edición creada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EdicionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /ediciones/{id}:
+    get:
+      tags: [Ediciones]
+      summary: Obtener edición por ID
+      operationId: getEdicionById
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Edición encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EdicionResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags: [Ediciones]
+      summary: Actualizar edición
+      operationId: updateEdicion
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EdicionRequest'
+      responses:
+        '200':
+          description: Edición actualizada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EdicionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags: [Ediciones]
+      summary: Eliminar edición
+      operationId: deleteEdicion
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204':
+          description: Edición eliminada correctamente
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ══════════════════════════════════════════
+  #  SALAS
+  # ══════════════════════════════════════════
+  /salas:
+    get:
+      tags: [Salas]
+      summary: Listar salas
+      description: Devuelve la lista de salas con filtros opcionales.
+      operationId: getSalas
+      parameters:
+        - name: tieneTecnologia4K
+          in: query
+          description: Filtra por disponibilidad de tecnología 4K
+          required: false
+          schema:
+            type: boolean
+            example: true
+        - name: aforoMin
+          in: query
+          description: Filtra salas con aforo mayor o igual al indicado
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            example: 100
+        - name: ubicacion
+          in: query
+          description: Filtra por ubicación (búsqueda parcial)
+          required: false
+          schema:
+            type: string
+            example: Centro
+      responses:
+        '200':
+          description: Lista de salas obtenida correctamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SalaResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags: [Salas]
+      summary: Crear sala
+      operationId: createSala
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalaRequest'
+      responses:
+        '201':
+          description: Sala creada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalaResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /salas/{id}:
+    get:
+      tags: [Salas]
+      summary: Obtener sala por ID
+      operationId: getSalaById
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Sala encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalaResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags: [Salas]
+      summary: Actualizar sala
+      operationId: updateSala
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalaRequest'
+      responses:
+        '200':
+          description: Sala actualizada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalaResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags: [Salas]
+      summary: Eliminar sala
+      operationId: deleteSala
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204':
+          description: Sala eliminada correctamente
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ══════════════════════════════════════════
+  #  PROYECCIONES
+  # ══════════════════════════════════════════
+  /proyecciones:
+    get:
+      tags: [Proyecciones]
+      summary: Listar proyecciones
+      description: Devuelve la lista de proyecciones con filtros opcionales.
+      operationId: getProyecciones
+      parameters:
+        - name: peliculaId
+          in: query
+          description: Filtra por ID de película
+          required: false
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: salaId
+          in: query
+          description: Filtra por ID de sala
+          required: false
+          schema:
+            type: integer
+            format: int64
+            example: 2
+        - name: subtitulada
+          in: query
+          description: Filtra por si la proyección está subtitulada
+          required: false
+          schema:
+            type: boolean
+            example: true
+      responses:
+        '200':
+          description: Lista de proyecciones obtenida correctamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProyeccionResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags: [Proyecciones]
+      summary: Crear proyección
+      operationId: createProyeccion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProyeccionRequest'
+      responses:
+        '201':
+          description: Proyección creada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProyeccionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /proyecciones/{id}:
+    get:
+      tags: [Proyecciones]
+      summary: Obtener proyección por ID
+      operationId: getProyeccionById
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Proyección encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProyeccionResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags: [Proyecciones]
+      summary: Actualizar proyección
+      operationId: updateProyeccion
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProyeccionRequest'
+      responses:
+        '200':
+          description: Proyección actualizada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProyeccionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags: [Proyecciones]
+      summary: Eliminar proyección
+      operationId: deleteProyeccion
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204':
+          description: Proyección eliminada correctamente
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ─────────────────────────────────────────────
+#  COMPONENTS
+# ─────────────────────────────────────────────
+components:
+
+  # ══════════════════════════════════════════
+  #  PARAMETERS
+  # ══════════════════════════════════════════
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      description: Identificador único del recurso
+      schema:
+        type: integer
+        format: int64
+        example: 1
+
+  # ══════════════════════════════════════════
+  #  RESPONSES REUTILIZABLES
+  # ══════════════════════════════════════════
+  responses:
+    BadRequest:
+      description: Petición incorrecta. Algún campo no cumple las validaciones.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            timestamp: "2025-09-15T10:30:00"
+            status: 400
+            error: Bad Request
+            message: "El campo 'nombre' no puede estar vacío"
+            path: "/api/v1/directores"
+
+    NotFound:
+      description: Recurso no encontrado.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            timestamp: "2025-09-15T10:30:00"
+            status: 404
+            error: Not Found
+            message: "Director con id 99 no encontrado"
+            path: "/api/v1/directores/99"
+
+    InternalServerError:
+      description: Error interno del servidor.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            timestamp: "2025-09-15T10:30:00"
+            status: 500
+            error: Internal Server Error
+            message: "Error inesperado en el servidor"
+            path: "/api/v1/directores"
+
+  # ══════════════════════════════════════════
+  #  SCHEMAS
+  # ══════════════════════════════════════════
+  schemas:
+
+    #  Error 
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+
+    #  Director 
+    DirectorRequest:
+      type: object
+      required:
+        - nombre
+        - apellidos
+      properties:
+        nombre:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Pedro
+        apellidos:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Almodóvar
+        nacionalidad:
+          type: string
+          maxLength: 50
+          example: Española
+        fechaNacimiento:
+          type: string
+          format: date
+          example: "1949-09-25"
+        notaMedia:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 10.0
+          example: 8.5
+        premioHonorifico:
+          type: boolean
+          default: false
+          example: true
+
+    DirectorResponse:
+      allOf:
+        - $ref: '#/components/schemas/DirectorRequest'
+        - type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+              example: 1
+
+    #  Película 
+    PeliculaRequest:
+      type: object
+      required:
+        - titulo
+        - directorId
+      properties:
+        titulo:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: Todo sobre mi madre
+        duracionMinutos:
+          type: integer
+          minimum: 1
+          example: 101
+        idioma:
+          type: string
+          maxLength: 50
+          example: Español
+        sinopsis:
+          type: string
+          maxLength: 1000
+          example: Una mujer busca al padre de su hijo fallecido.
+        fechaEstreno:
+          type: string
+          format: date
+          example: "1999-04-16"
+        notaMedia:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 10.0
+          example: 9.1
+        directorId:
+          type: integer
+          format: int64
+          example: 1
+
+    PeliculaResponse:
+      allOf:
+        - $ref: '#/components/schemas/PeliculaRequest'
+        - type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+              example: 1
+            director:
+              $ref: '#/components/schemas/DirectorResponse'
+
+    #  Edición 
+    EdicionRequest:
+      type: object
+      required:
+        - anio
+        - ciudad
+        - fechaInicio
+        - fechaFin
+      properties:
+        anio:
+          type: integer
+          minimum: 1900
+          example: 2025
+        ciudad:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: San Sebastián
+        fechaInicio:
+          type: string
+          format: date
+          example: "2025-09-19"
+        fechaFin:
+          type: string
+          format: date
+          example: "2025-09-27"
+        presupuesto:
+          type: number
+          format: float
+          minimum: 0.0
+          example: 2500000.00
+        activa:
+          type: boolean
+          default: false
+          example: true
+
+    EdicionResponse:
+      allOf:
+        - $ref: '#/components/schemas/EdicionRequest'
+        - type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+              example: 1
+
+    #  Sala 
+    SalaRequest:
+      type: object
+      required:
+        - nombre
+        - aforo
+      properties:
+        nombre:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Sala Principal Kursaal
+        aforo:
+          type: integer
+          minimum: 1
+          example: 1800
+        ubicacion:
+          type: string
+          maxLength: 200
+          example: Av. de Zurriola 1, San Sebastián
+        tieneTecnologia4K:
+          type: boolean
+          default: false
+          example: true
+        fechaInauguracion:
+          type: string
+          format: date
+          example: "1999-09-23"
+
+    SalaResponse:
+      allOf:
+        - $ref: '#/components/schemas/SalaRequest'
+        - type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+              example: 1
+
+    # ── Proyección 
+    ProyeccionRequest:
+      type: object
+      required:
+        - fechaHora
+        - peliculaId
+        - salaId
+        - edicionId
+      properties:
+        fechaHora:
+          type: string
+          format: date-time
+          example: "2025-09-20T18:00:00"
+        entradasVendidas:
+          type: integer
+          minimum: 0
+          example: 1500
+        precioEntrada:
+          type: number
+          format: float
+          minimum: 0.01
+          example: 12.50
+        subtitulada:
+          type: boolean
+          default: false
+          example: true
+        peliculaId:
+          type: integer
+          format: int64
+          example: 1
+        salaId:
+          type: integer
+          format: int64
+          example: 1
+        edicionId:
+          type: integer
+          format: int64
+          example: 1
+
+    ProyeccionResponse:
+      allOf:
+        - $ref: '#/components/schemas/ProyeccionRequest'
+        - type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+              example: 1
+            pelicula:
+              $ref: '#/components/schemas/PeliculaResponse'
+            sala:
+              $ref: '#/components/schemas/SalaResponse'
+            edicion:
+              $ref: '#/components/schemas/EdicionResponse'
